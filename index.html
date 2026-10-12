@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOR: 12.101.01 - Análise Preliminar de Risco (APR)</title>
+    <!-- SheetJS para exportação em Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 11px; margin: 10px; color: #000; background-color: #f4f6f9; }
+        .container { max-width: 1050px; margin: auto; background: #fff; padding: 15px; border: 1px solid #000; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+        th, td { border: 1px solid #000; padding: 4px; vertical-align: middle; }
+        th { background-color: #e0e0e0; text-align: center; font-size: 11px; }
+        .title { text-align: center; font-weight: bold; font-size: 13px; background-color: #dcdcdc; padding: 5px; text-transform: uppercase; }
+        .section-title { font-weight: bold; background-color: #dcdcdc; padding: 5px; margin-top: 10px; border: 1px solid #000; text-transform: uppercase; font-size: 11px; }
+        input[type="text"], input[type="date"], select { width: 95%; padding: 3px; border: 1px solid #ccc; border-radius: 2px; font-size: 11px; }
+        .signature-box { border: 1px dashed #000; height: 50px; position: relative; background: #fff; cursor: crosshair; }
+        canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+        .btn-container { margin: 15px 0; text-align: center; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        button { padding: 8px 12px; font-weight: bold; cursor: pointer; border: none; border-radius: 4px; color: #fff; font-size: 12px; }
+        .btn-save { background-color: #28a745; }
+        .btn-excel { background-color: #17a2b8; }
+        .btn-pdf { background-color: #ffc107; color: #000; }
+        .btn-clear { background-color: #dc3545; }
+        .history-section { margin-top: 20px; border-top: 2px solid #333; padding-top: 10px; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px; }
+        @media print {
+            .btn-container, .history-section, .no-print, button { display: none !important; }
+            body { background: #fff; margin: 0; }
+            .container { border: none; box-shadow: none; padding: 0; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- CABEÇALHO -->
+    <table>
+        <tr>
+            <td style="width: 20%; text-align: center; font-weight: bold;">QSSMA</td>
+            <td style="width: 60%; text-align: center;" class="title">APR - ANÁLISE PRELIMINAR DE RISCO</td>
+            <td style="width: 20%; font-size: 10px;">
+                Identificação FOR: 12.101.01<br>
+                Revisão: 01<br>
+                Data: <input type="date" id="dataEmissao" style="width:auto;">
+            </td>
+        </tr>
+    </table>
+
+    <!-- DADOS DA TAREFA -->
+    <table>
+        <tr>
+            <td><strong>Obra:</strong> <input type="text" id="obra" placeholder="Nome da Obra"></td>
+            <td style="width: 35%;"><strong>Turno:</strong> 
+                <label><input type="checkbox" name="turno" value="1º"> 1º</label>
+                <label><input type="checkbox" name="turno" value="2º"> 2º</label>
+                <label><input type="checkbox" name="turno" value="3º"> 3º</label>
+                <label><input type="checkbox" name="turno" value="Noite"> Noite</label>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Empresa:</strong> <input type="text" id="empresa" placeholder="Empresa Executante"></td>
+            <td><strong>Data da Atividade:</strong> <input type="date" id="dataAtividade"></td>
+        </tr>
+        <tr>
+            <td><strong>Atividade:</strong> <input type="text" id="atividade" placeholder="Descrição da Tarefa"></td>
+            <td><strong>APR Válida até:</strong> <input type="date" id="validaAte"></td>
+        </tr>
+        <tr>
+            <td colspan="2"><strong>Local:</strong> <input type="text" id="local" placeholder="Local exato da execução"></td>
+        </tr>
+    </table>
+
+    <div style="margin-bottom: 5px; font-style: italic; font-size: 10px;">
+        Identifique os riscos presentes na execução da tarefa e marque as respectivas medidas de controle, caso necessário escreva outros riscos e medidas de controle.
+    </div>
+
+    <!-- MATRIZ DE RISCOS E MEDIDAS DE CONTROLE -->
+    <table>
+        <tr>
+            <th style="width: 20%;">Perigo</th>
+            <th style="width: 35%;">Risco</th>
+            <th style="width: 45%;">Medidas de Controle</th>
+        </tr>
+        <!-- 1. ELETRICIDADE -->
+        <tr>
+            <td><strong>ELETRICIDADE</strong></td>
+            <td>
+                <label><input type="checkbox" class="chk"> Choque elétrico</label><br>
+                <label><input type="checkbox" class="chk"> Incêndios</label><br>
+                <label><input type="checkbox" class="chk"> Queimaduras por arco elétrico</label><br>
+                <label><input type="checkbox" class="chk"> Eletrocussão</label><br>
+                Outros Riscos: <input type="text" id="risco_eletricidade" placeholder="Outro risco elétrico" style="width:90%;">
+            </td>
+            <td>
+                <label><input type="checkbox" class="chk"> Fazer uso de: EPCs e EPIs (Balaclava / Luvas isolantes / Luvas de Vaqueta).</label><br>
+                <label><input type="checkbox" class="chk"> Desenergizar circuito elétrico</label><br>
+                <label><input type="checkbox" class="chk"> Fazer bloqueio das fontes de energia com cadeado / sinalizar com etiqueta.</label><br>
+                <label><input type="checkbox" class="chk"> Esgotar energia residual</label><br>
+                <label><input type="checkbox" class="chk"> Isolar os arredores da atividade</label><br>
+                <label><input type="checkbox" class="chk"> Utilização de ferramentas isoladas</label><br>
+                <strong>OBRIGATÓRIO:</strong> Manutenção somente por profissional autorizado: NR10. Uso de EPI's NR 10 (Calçado de Segurança para eletricista, Luva, Óculos, Capacete, Calça e Camisa).
+            </td>
+        </tr>
+        <!-- 2. CONTATO PARTES MÓVEIS -->
+        <tr>
+            <td><strong>CONTATO PARTES MÓVEIS DE MÁQUINAS E EQUIPAMENTOS</strong></td>
+            <td>
+                <label><input type="checkbox" class="chk"> Bater contra</label><br>
+                <label><input type="checkbox" class="chk"> Cortes</label><br>
+                <label><input type="checkbox" class="chk"> Prensamento</label><br>
+                <label><input type="checkbox" class="chk"> Frição / abrasão</label><br>
+                <label><input type="checkbox" class="chk"> Enroscar</label><br>
+                Outros Riscos: <input type="text" id="risco_maquinas" placeholder="Outro risco" style="width:90%;">
+            </td>
+            <td>
+                <label><input type="checkbox" class="chk"> Fazer uso de luvas.</label><br>
+                <label><input type="checkbox" class="chk"> Fazer bloqueio das fontes de energia com cadeado / sinalizar com etiqueta.</label><br>
+                <label><input type="checkbox" class="chk"> Isolar a área, inibindo o acesso de terceiros a atividade.</label><br>
+                <label><input type="checkbox" class="chk"> Utilizar os dispositivos de trava mecânicas de segurança.</label><br>
+                <label><input type="checkbox" class="chk"> Manter as proteções fixas.</label><br>
+                <strong>OBRIGATÓRIO:</strong> Manutenção somente por profissional autorizado: NR12. Garantir o funcionamento dos dispositivos de segurança.
+            </td>
+        </tr>
+        <!-- 3. PROJEÇÃO DE PARTÍCULAS -->
+        <tr>
+            <td><strong>PROJEÇÃO DE PARTÍCULAS</strong></td>
+            <td>
+                <label><input type="checkbox" class="chk"> Lesões por impacto</label><br>
+                <label><input type="checkbox" class="chk"> Lesões oculares</label><br>
+                <label><input type="checkbox" class="chk"> Queimaduras</label><br>
+                Outros Riscos: <input type="text" id="risco_projecao" placeholder="Outro risco" style="width:90%;">
+            </td>
+            <td>
+                <label><input type="checkbox" class="chk"> Proteger / isolar áreas com biombos ou barreira física.</label><br>
+                <label><input type="checkbox" class="chk"> Fazer uso de máscara de proteção facial em esmeriladeiras, lixadeiras e etc.</label><br>
+                <label><input type="checkbox" class="chk"> Fazer uso de óculos ampla visão quando manusear produtos químicos com respingos.</label><br>
+                <strong>OBRIGATÓRIO:</strong> Somente por profissional treinado: Trabalho a Quente. Realizar check list das ferramentas.
+            </td>
+        </tr>
+        <!-- 4. ESPAÇO CONFINADO -->
+        <tr>
+            <td><strong>ESPAÇO CONFINADO</strong></td>
+            <td>
+                <label><input type="checkbox" class="chk"> Asfixia</label> | <label><input type="checkbox" class="chk"> Afogamento</label><br>
+                <label><input type="checkbox" class="chk"> Incêndio / Explosão</label> | <label><input type="checkbox" class="chk"> Intoxicação</label><br>
+                <label><input type="checkbox" class="chk"> Irritação Cutânea</label> | <label><input type="checkbox" class="chk"> Irritação Ocular</label><br>
+                <label><input type="checkbox" class="chk"> Quedas</label> | <label><input type="checkbox" class="chk"> Soterramento</label><br>
+                Outros Riscos: <input type="text" id="risco_confinado" placeholder="Outro risco" style="width:90%;">
+            </td>
+            <td>
+                <label><input type="checkbox" class="chk"> Isolar os arredores do espaço confinado e não permitir acesso sem autorização.</label><br>
+                <label><input type="checkbox" class="chk"> Bloquear as energias perigosas e monitorar ambiente antes da entrada.</label><br>
+                <label><input type="checkbox" class="chk"> Realizar limpeza técnica prévia e exaustão / ventilação do local.</label><br>
+                <strong>OBRIGATÓRIO:</strong> Preencher a PET, Nº: <input type="text" style="width:80px; display:inline;">. O Vigia deve manter comunicação com o interior durante toda a execução.
+            </td>
+        </tr>
+        <!-- 5. FOGO / CHAMA -->
+        <tr>
+            <td><strong>FOGO / CHAMA</strong></td>
+            <td>
+                <label><input type="checkbox" class="chk"> Explosão</label><br>
+                <label><input type="checkbox" class="chk"> Incêndio</label><br>
+                <label><input type="checkbox" class="chk"> Queimaduras</label><br>
+                <label><input type="checkbox" class="chk"> Radiação proveniente de fontes quentes</label><br>
+                Outros Riscos: <input type="text" id="risco_fogo" placeholder="Outro risco" style="width:90%;">
+            </td>
+            <td>
+                <label><input type="checkbox" class="chk"> Isolar os arredores da atividade e proibir acesso de não autorizados.</label><br>
+                <label><input type="checkbox" class="chk"> Utilizar carrinhos adequados para transporte dos cilindros e mantê-los separados/fixados.</label><br>
+                <label><input type="checkbox" class="chk"> Não realizar trabalhos a quente próximos de líquidos e/ou combustíveis inflamáveis.</label><br>
+                <label><input type="checkbox" class="chk"> Manter extintores de incêndio próximos aos trabalhos a quente.</label><br>
+                <strong>OBRIGATÓRIO:</strong> Inspecionar os equipamentos de trabalho a quente antes do uso (check list).
+            </td>
+        </tr>
+        <!-- 6. TRABALHO EM ALTURA -->
+        <tr>
+            <td><strong>TRABALHO EM ALTURA</strong></td>
+            <td>
+                <label><input type="checkbox" class="chk"> Queda de nível</label><br>
+                <label><input type="checkbox" class="chk"> Lesão / Fraturas</label><br>
+                <label><input type="checkbox" class="chk"> Queda de materiais e ferramentas</label><br>
+                <label><input type="checkbox" class="chk"> Riscos adicionais inerentes ao ambiente e/ou atividade</label><br>
+                Outros Riscos: <input type="text" id="risco_altura" placeholder="Outro risco" style="width:90%;">
+            </td>
+            <td>
+                <label><input type="checkbox" class="chk"> Inspecionar escadas, guarda-corpo, andaimes e plataformas elevatórias antes do uso.</label><br>
+                <label><input type="checkbox" class="chk"> Montar andaime conforme padrão técnico.</label><br>
+                <label><input type="checkbox" class="chk"> Utilizar ponto de ancoragem (linhas de vida e/ou cabo guia).</label><br>
+                <label><input type="checkbox" class="chk"> Realizar exaustão/ventilação do local, providenciar acesso seguro e definir sistema de ancoragem.</label>
+            </td>
+        </tr>
+        <!-- 7. CARGAS SUSPENSAS E ERGONOMIA -->
+        <tr>
+            <td><strong>CARGAS SUSPENSAS e/ou CONDIÇÕES ANTI-ERGONÔMICAS</strong></td>
+            <td>
+                <label><input type="checkbox" class="chk"> Queda de material</label> | <label><input type="checkbox" class="chk"> Lesões / Fraturas</label><br>
+                <label><input type="checkbox" class="chk"> Contraturas / Torção</label> | <label><input type="checkbox" class="chk"> Posturas Inadequadas</label><br>
+                <label><input type="checkbox" class="chk"> Exposição a Vibração</label> | <label><input type="checkbox" class="chk"> Transporte manual de peso</label><br>
+                Outros Riscos: <input type="text" id="risco_cargas" placeholder="Outro risco" style="width:90%;">
+            </td>
+            <td>
+                <label><input type="checkbox" class="chk"> Isolar áreas de deslocamento de cargas suspensas e usar cordas para direcionamento.</label><br>
+                <label><input type="checkbox" class="chk"> Não içar materiais de níveis diferentes e inspecionar cintas e olhais antes do uso.</label><br>
+                <label><input type="checkbox" class="chk"> Manter postura adequada à atividade.</label><br>
+                <strong>OBRIGATÓRIO:</strong> Inspecionar os equipamentos e acessórios de içamento antes do uso.
+            </td>
+        </tr>
+    </table>
+
+    <!-- EPIs OBRIGATÓRIOS -->
+    <div class="section-title">Equipamentos de Proteção Individual (EPI): Marque quais EPI's são obrigatórios para essa atividade</div>
+    <table>
+        <tr>
+            <td>
+                <div class="checkbox-grid">
+                    <label><input type="checkbox" class="epi"> 🪖 Capacete</label>
+                    <label><input type="checkbox" class="epi"> 🎧 Protetor Auricular</label>
+                    <label><input type="checkbox" class="epi"> 🥾 Bota de Segurança</label>
+                    <label><input type="checkbox" class="epi"> 😷 Proteção Respiratória</label>
+                    <label><input type="checkbox" class="epi"> 🧑‍‍🏭 Máscara de Solda</label>
+                    <label><input type="checkbox" class="epi"> 🛡️ Avental e Mangote</label>
+                    <label><input type="checkbox" class="epi"> 🪢 Cinto de Segurança PDQ/Duplo Talabarte (Absorvedor)</label>
+                    <label><input type="checkbox" class="epi"> 🧴 Creme Protetor</label>
+                    <label><input type="checkbox" class="epi"> 🦺 Vestimenta Uniforme</label>
+                    <label><input type="checkbox" class="epi"> 🌁 Protetor Semifacial</label>
+                    <label><input type="checkbox" class="epi"> 👓 Óculos de Segurança</label>
+                    <label><input type="checkbox" class="epi"> 🧤 Luvas de Proteção</label>
+                </div>
+                <div style="margin-top: 8px;">
+                    Necessita de outro EPI? 
+                    <select id="outroEpiSelect" style="width: 100px;">
+                        <option value="NÃO">NÃO</option>
+                        <option value="SIM">SIM</option>
+                    </select>
+                    Caso a resposta seja sim, descreva quais EPI's: <input type="text" id="descOutroEpi" style="width: 45%;">
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- ACESSOS, BLOQUEIOS E OUTROS RISCOS -->
+    <div class="section-title">Acessos, Bloqueios e Outros Riscos</div>
+    <table>
+        <tr>
+            <td style="width: 50%;">
+1. Há definição dos acessos: por onde chegar e sair em caso de uma situação de emergência? <select><option>SIM</option><option>NÃO</option><option>N/A</option></select><br>
+2. Há definição dos acessos e instalações a intervir? <select><option>SIM</option><option>NÃO</option><option>N/A</option></select><br>
+3. O local está sinalizado afim de evitar o acesso de pessoas não autorizadas? <select><option>SIM</option><option>NÃO</option><option>N/A</option></select><br>
+4. Já executou esta atividade anteriormente? <select><option>SIM</option><option>NÃO</option><option>N/A</option></select><br>
+                <em>Propor medida(s) de controle para quaisquer respostas negativas para os itens acima e/ou comunicar à Supervisão.</em>
+            </td>
+            <td style="width: 50%;">
+                <strong>Marque as Fontes de Energias a serem bloqueadas e assegure a aplicação:</strong><br>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin: 4px 0;">
+                    <label><input type="checkbox"> Mecânico</label>
+                    <label><input type="checkbox"> Elétrico</label>
+                    <label><input type="checkbox"> Pneumática</label>
+                    <label><input type="checkbox"> Hidráulica</label>
+                    <label><input type="checkbox"> Cinético</label>
+                    <label><input type="checkbox"> Radioativo</label>
+                    <label><input type="checkbox"> Química</label>
+                    <label><input type="checkbox"> Térmica</label>
+                    <label><input type="checkbox"> Potencial</label>
+                </div>
+                <strong>Indiquem as formas utilizadas para Bloquear as Fontes de Energias sinalizadas anteriormente:</strong><br>
+                Elétricos: <input type="text" placeholder="Preencher forma de bloqueio elétrico"><br>
+                Mecânicos: <input type="text" placeholder="Preencher forma de bloqueio mecânico"><br>
+                Outro: <input type="text" placeholder="Outros bloqueios">
+            </td>
+        </tr>
+    </table>
+
+    <!-- LISTAS DE VERIFICAÇÃO DE EQUIPAMENTOS (CHECKLISTS) -->
+    <div class="section-title">Listas de Verificação de Equipamentos (Quando Aplicável)</div>
+    <div style="font-size: 10px; margin-bottom: 5px; line-height: 1.4;">
+1. Cinto de Segurança / Talabarte &nbsp;&nbsp;|&nbsp;&nbsp; 2. Escadas de Mão &nbsp;&nbsp;|&nbsp;&nbsp; 3. Andaime &nbsp;&nbsp;|&nbsp;&nbsp; 4. Maçarico &nbsp;&nbsp;|&nbsp;&nbsp; 5. Máquina de Solda &nbsp;&nbsp;|&nbsp;&nbsp; 6. Lixadeira Manual &nbsp;&nbsp;|&nbsp;&nbsp; 7. Acessórios para movimentação de cargas &nbsp;&nbsp;|&nbsp;&nbsp; 8. Equipamentos autopropelidos &nbsp;&nbsp;|&nbsp;&nbsp; 9. Ferramentas / equipamentos manuais<br>
+        <strong>Em caso de algum item NOK em qualquer uma das Listas de Verificação, as atividades não devem ser iniciadas até a regularização das condições de segurança e as anomalias devem ser registradas em check list específico.</strong>
+    </div>
+
+    <!-- ANEXOS / IMAGEM DA ATIVIDADE -->
+    <div class="section-title">Anexos / Imagens da Atividade (Opcional)</div>
+    <div style="margin-top: 10px; text-align: center; padding: 10px; border: 1px dashed #ccc; background-color: #fafafa;">
+        <div class="no-print" style="margin-bottom: 10px;">
+            <label for="inputImagem" style="font-weight: bold; cursor: pointer; background: #007bff; color: #fff; padding: 6px 12px; border-radius: 4px; font-size: 11px;">📸 Escolher / Inserir Imagem</label>
+            <input type="file" id="inputImagem" accept="image/*" style="display: none;">
+            <button type="button" class="btn-clear" id="btnRemoverImagem" style="display: none; padding: 6px 12px; margin-left: 10px;" onclick="removerImagem()">Remover Imagem</button>
+        </div>
+        <img id="previewImagem" style="max-width: 100%; max-height: 400px; display: none; border: 1px solid #000; margin: auto;">
+        <div id="imgPlaceholder" class="no-print" style="color: #666; font-size: 11px; font-style: italic;">Nenhuma imagem anexada. (Esta mensagem não aparecerá na impressão ou PDF).</div>
+    </div>
+
+    <!-- PASSOS DA TAREFA E RISCOS APLICÁVEIS (13 CAMPOS) -->
+    <div class="section-title">Passos da Tarefa (13 Campos)</div>
+    <table>
+        <tr>
+            <th style="width: 5%;">Item</th>
+            <th style="width: 60%;">Passos da Tarefa</th>
+            <th style="width: 35%;">Enumere os Riscos Aplicáveis</th>
+        </tr>
+        <script>
+            for(let i=1; i<=13; i++) {
+                document.write(`
+                    <tr>
+                        <td style="text-align:center; font-weight:bold;">${i}</td>
+                        <td><input type="text" placeholder="Passo ${i} da tarefa"></td>
+                        <td><input type="text" placeholder="Riscos aplicáveis ao passo ${i}"></td>
+                    </tr>
+                `);
+            }
+        </script>
+    </table>
+
+    <!-- PERGUNTAS DE LIBERAÇÃO DA LIDERANÇA -->
+    <div class="section-title">Verificação de Segurança para Liberação da Atividade</div>
+    <table>
+        <tr>
+            <td>Local de trabalho está isolado?</td>
+            <td style="width: 90px;"><select><option>SIM</option><option>N/A</option><option>NÃO</option></select></td>
+            <td>Fontes de energias bloqueadas conforme procedimento?</td>
+            <td style="width: 90px;"><select><option>SIM</option><option>N/A</option><option>NÃO</option></select></td>
+        </tr>
+        <tr>
+            <td>Máquina / Equipamento sinalizado com etiqueta e cadeado de bloqueio?</td>
+            <td><select><option>SIM</option><option>N/A</option><option>NÃO</option></select></td>
+            <td>O(s) colaborador(es) foi(rão) orientado(s) sobre a(s) atividade(s) e está(ão) autorizado(s) para execução?</td>
+            <td><select><option>SIM</option><option>N/A</option><option>NÃO</option></select></td>
+        </tr>
+        <tr>
+            <td>As fontes de energias de equipamentos/infraestrutura vizinhos que interajam com este trabalho estão devidamente bloqueadas?</td>
+            <td><select><option>SIM</option><option>N/A</option><option>NÃO</option></select></td>
+            <td>Sobreposição de atividades é inexistente?</td>
+            <td><select><option>SIM</option><option>N/A</option><option>NÃO</option></select></td>
+        </tr>
+        <tr>
+            <td>Espaço confinado. O espaço está com ambiente controlado e monitorado?</td>
+            <td><select><option>SIM</option><option>N/A</option><option>NÃO</option></select></td>
+            <td>Trabalho em altura. O sistema de ancoragem está adequado para execução da atividade?</td>
+            <td><select><option>SIM</option><option>N/A</option><option>NÃO</option></select></td>
+        </tr>
+        <tr>
+            <td>Trabalho em altura. Os equipamentos e acessórios foram inspecionados e estão em condição de uso?</td>
+            <td><select><option>SIM</option><option>N/A</option><option>NÃO</option></select></td>
+            <td>Os colaboradores envolvidos neste trabalho têm a capacitação / qualificação / habilitação para execução das atividades?</td>
+            <td><select><option>SIM</option><option>N/A</option><option>NÃO</option></select></td>
+        </tr>
+    </table>
+
+    <!-- EXECUTANTES DA TAREFA (10 CAMPOS COM ASSINATURA MANUAL) -->
+    <div class="section-title">Executantes da Tarefa (Até 10 Participantes)</div>
+    <div style="font-size: 10px; margin-bottom: 5px;">Declaro que participei da elaboração do conteúdo deste documento e comprometo-me seguir todos os passos / recomendações / procedimentos e itens de verificação contidos no mesmo.</div>
+    <table>
+        <tr>
+            <th style="width: 5%;">#</th>
+            <th style="width: 40%;">Nome (10 Campos)</th>
+            <th style="width: 20%;">Cargo (10 Campos)</th>
+            <th style="width: 35%;">Assinatura Manual (Dedo ou Mouse)</th>
+        </tr>
+        <script>
+            for(let j=1; j<=10; j++) {
+                document.write(`
+                    <tr>
+                        <td style="text-align:center; font-weight:bold;">${j}</td>
+                        <td><input type="text" id="exec_nome_${j}" placeholder="Nome do Executante ${j}"></td>
+                        <td><input type="text" id="exec_cargo_${j}" placeholder="Cargo"></td>
+                        <td>
+                            <div class="signature-box">
+                                <canvas id="canvasExec_${j}"></canvas>
+                            </div>
+                            <button type="button" onclick="limparCanvas('canvasExec_${j}')" class="no-print" style="background:#6c757d; font-size:9px; padding:2px 5px; margin-top:2px;">Limpar</button>
+                        </td>
+                    </tr>
+                `);
+            }
+        </script>
+    </table>
+
+    <!-- APROVAÇÃO E PERMISSÃO PARA TRABALHO - LIDERANÇA -->
+    <div class="section-title">Aprovação da Análise de Risco e Permissão para Trabalho - Liderança</div>
+    <table>
+        <tr>
+            <td><strong>Nome:</strong> <input type="text" id="lider_nome" placeholder="Nome do líder/engenheiro"></td>
+            <td style="width: 25%;"><strong>Matrícula:</strong> <input type="text" id="lider_mat" placeholder="Matrícula"></td>
+            <td style="width: 35%;"><strong>Cargo:</strong> <input type="text" id="lider_cargo" placeholder="Cargo"></td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                <strong>Assinatura da Liderança (Manual com dedo ou mouse):</strong>
+                <div class="signature-box" style="margin-top: 5px;">
+                    <canvas id="canvasLider"></canvas>
+                </div>
+                <button type="button" onclick="limparCanvas('canvasLider')" class="no-print" style="background:#6c757d; font-size:9px; padding:2px 5px; margin-top:2px;">Limpar Assinatura</button>
+            </td>
+        </tr>
+    </table>
+
+    <!-- LIBERAÇÃO DA ATIVIDADE PELA LIDERANÇA -->
+    <div class="section-title">Liberação da Atividade pela Liderança (Engenheiro, Mestre e Encarregado de Obra)</div>
+    <table>
+        <tr>
+            <td>
+                <strong>Assinatura de Liberação final da Liderança (Manual com dedo ou mouse):</strong>
+                <div class="signature-box" style="margin-top: 5px;">
+                    <canvas id="canvasLiberacao"></canvas>
+                </div>
+                <button type="button" onclick="limparCanvas('canvasLiberacao')" class="no-print" style="background:#6c757d; font-size:9px; padding:2px 5px; margin-top:2px;">Limpar Assinatura</button>
+            </td>
+        </tr>
+    </table>
+
+    <!-- BOTÕES DE AÇÃO -->
+    <div class="btn-container no-print">
+        <button type="button" class="btn-save" onclick="salvarRegistro()">Salvar Histórico na Página</button>
+        <button type="button" class="btn-excel" onclick="exportarExcel()">Extrair Dados em Excel (.xlsx)</button>
+        <button type="button" class="btn-pdf" onclick="window.print()">Gerar PDF / Imprimir</button>
+        <button type="button" class="btn-clear" onclick="limparFormulario()">Novo / Limpar Formulário</button>
+    </div>
+
+    <!-- HISTÓRICO LOCAL -->
+    <div class="history-section no-print">
+        <h3>Histórico de APRs Armazenadas na Página</h3>
+        <table id="tabelaHistorico">
+            <thead>
+                <tr>
+                    <th>Data Emissão</th>
+                    <th>Obra</th>
+                    <th>Empresa</th>
+                    <th>Atividade</th>
+                    <th>Líder Responsável</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Preenchido via JavaScript -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Configuração dos Canvas para Assinatura Tátil / Mouse
+    function setupCanvas(canvasId) {
+        const canvas = document.getElementById(canvasId);
+        if(!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let painting = false;
+
+        function resize() {
+            const rect = canvas.getBoundingClientRect();
+            if(rect.width > 0 && rect.height > 0) {
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+            }
+        }
+        window.addEventListener('resize', resize);
+        setTimeout(resize, 200);
+
+        function startPosition(e) {
+            painting = true;
+            draw(e);
+        }
+        function endPosition() {
+            painting = false;
+            ctx.beginPath();
+        }
+        function draw(e) {
+            if (!painting) return;
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000';
+
+            const rect = canvas.getBoundingClientRect();
+            let clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
+            let clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
+            let x = clientX - rect.left;
+            let y = clientY - rect.top;
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', endPosition);
+        canvas.addEventListener('mousemove', draw);
+
+        canvas.addEventListener('touchstart', startPosition);
+        canvas.addEventListener('touchend', endPosition);
+        canvas.addEventListener('touchmove', draw);
+    }
+
+    // Inicializar os 10 executantes e as lideranças
+    for(let k=1; k<=10; k++) {
+        setupCanvas(`canvasExec_${k}`);
+    }
+    setupCanvas('canvasLider');
+    setupCanvas('canvasLiberacao');
+
+    function limparCanvas(canvasId) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // GESTÃO DE IMAGEM DA ATIVIDADE
+    document.getElementById('inputImagem').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgPreview = document.getElementById('previewImagem');
+                imgPreview.src = e.target.result;
+                imgPreview.style.display = 'block';
+                document.getElementById('btnRemoverImagem').style.display = 'inline-block';
+                document.getElementById('imgPlaceholder').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    function removerImagem() {
+        document.getElementById('inputImagem').value = '';
+        const imgPreview = document.getElementById('previewImagem');
+        imgPreview.src = '';
+        imgPreview.style.display = 'none';
+        document.getElementById('btnRemoverImagem').style.display = 'none';
+        document.getElementById('imgPlaceholder').style.display = 'block';
+    }
+
+    // Gestão de Histórico via LocalStorage
+    function carregarHistorico() {
+        const historico = JSON.parse(localStorage.getItem('apr_historico_final') || '[]');
+        const tbody = document.querySelector('#tabelaHistorico tbody');
+        tbody.innerHTML = '';
+
+        if(historico.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum registo salvo no momento.</td></tr>';
+            return;
+        }
+
+        historico.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.dataEmissao}</td>
+                <td>${item.obra}</td>
+                <td>${item.empresa}</td>
+                <td>${item.atividade}</td>
+                <td>${item.liderNome}</td>
+                <td>
+                    <button onclick="carregarItem(${index})" style="background:#007bff; padding:3px 6px; font-size:10px;">Ver</button>
+                    <button onclick="apagarItem(${index})" style="background:#dc3545; padding:3px 6px; font-size:10px;">Excluir</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function salvarRegistro() {
+        const registro = {
+            dataEmissao: document.getElementById('dataEmissao').value,
+            obra: document.getElementById('obra').value,
+            empresa: document.getElementById('empresa').value,
+            atividade: document.getElementById('atividade').value,
+            local: document.getElementById('local').value,
+            dataAtividade: document.getElementById('dataAtividade').value,
+            validaAte: document.getElementById('validaAte').value,
+            liderNome: document.getElementById('lider_nome').value,
+            liderMatricula: document.getElementById('lider_mat').value,
+            liderCargo: document.getElementById('lider_cargo').value,
+            assinaturaLider: document.getElementById('canvasLider').toDataURL()
+            // A imagem não é salva no localStorage para evitar estourar o limite de 5MB do navegador
+        };
+
+        if(!registro.obra || !registro.atividade) {
+            alert('Por favor, preencha pelo menos a Obra e a Atividade.');
+            return;
+        }
+
+        let historico = JSON.parse(localStorage.getItem('apr_historico_final') || '[]');
+        historico.push(registro);
+        localStorage.setItem('apr_historico_final', JSON.stringify(historico));
+        carregarHistorico();
+        alert('APR salva com sucesso no armazenamento da página!');
+    }
+
+    function apagarItem(index) {
+        let historico = JSON.parse(localStorage.getItem('apr_historico_final') || '[]');
+        historico.splice(index, 1);
+        localStorage.setItem('apr_historico_final', JSON.stringify(historico));
+        carregarHistorico();
+    }
+
+    function carregarItem(index) {
+        let historico = JSON.parse(localStorage.getItem('apr_historico_final') || '[]');
+        let item = historico[index];
+        if(!item) return;
+
+        document.getElementById('dataEmissao').value = item.dataEmissao || '';
+        document.getElementById('obra').value = item.obra || '';
+        document.getElementById('empresa').value = item.empresa || '';
+        document.getElementById('atividade').value = item.atividade || '';
+        document.getElementById('local').value = item.local || '';
+        document.getElementById('dataAtividade').value = item.dataAtividade || '';
+        document.getElementById('validaAte').value = item.validaAte || '';
+        document.getElementById('lider_nome').value = item.liderNome || '';
+        document.getElementById('lider_mat').value = item.liderMatricula || '';
+        document.getElementById('lider_cargo').value = item.liderCargo || '';
+
+        if(item.assinaturaLider) {
+            let imgL = new Image();
+            imgL.onload = () => {
+                let ctxL = document.getElementById('canvasLider').getContext('2d');
+                ctxL.clearRect(0,0,ctxL.canvas.width, ctxL.canvas.height);
+                ctxL.drawImage(imgL, 0, 0);
+            };
+            imgL.src = item.assinaturaLider;
+        }
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function limparFormulario() {
+        document.querySelectorAll('input[type="text"], input[type="date"]').forEach(input => input.value = '');
+        document.querySelectorAll('input[type="checkbox"]').forEach(chk => chk.checked = false);
+        limparCanvas('canvasLider');
+        limparCanvas('canvasLiberacao');
+        for(let k=1; k<=10; k++) {
+            limparCanvas(`canvasExec_${k}`);
+        }
+        removerImagem();
+    }
+
+    function exportarExcel() {
+        const historico = JSON.parse(localStorage.getItem('apr_historico_final') || '[]');
+        if(historico.length === 0) {
+            alert('Não existem registos salvos para exportar.');
+            return;
+        }
+        const worksheet = XLSX.utils.json_to_sheet(historico);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Histórico APRs");
+        XLSX.writeFile(workbook, "historico_apr_completo.xlsx");
+    }
+
+    window.onload = carregarHistorico;
+</script>
+
+</body>
+</html>
